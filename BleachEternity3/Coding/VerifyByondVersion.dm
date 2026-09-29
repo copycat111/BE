@@ -1,17 +1,17 @@
 var/RequiredByondVersion
 
 proc/VerifyByondVersion()
-	set background=1
-	if(!EnableRemoteHttpChecks)	return
+	var/Retries=0;RETRY;Retries+=1
 	var/http[]=world.Export("http://www.angelfire.com/hero/straygames/ByondVersion.txt")
 	if(!http)
-		world.log<<"BYOND version check failed (network unavailable)"
+		world<<"BYOND Version could not be Verified!"
+		if(Retries<=10)	{world<<"Retry Attempt # [Retries]";goto RETRY}
 		return
 	RequiredByondVersion=text2num(file2text(http["CONTENT"]))
 	return RequiredByondVersion
 
 mob/proc/CheckByondVersion()
-	if(src.client && RequiredByondVersion && src.client.byond_version<RequiredByondVersion)
+	if(src.client && src.client.byond_version<RequiredByondVersion)
 		src<<"<font size=5 color=red><b>BYOND Version [RequiredByondVersion] or Higher is now Required to Play!"
 		src<<link("http://www.byond.com/download/")
 		del src.client
@@ -24,7 +24,7 @@ mob/GM/verb
 		for(var/mob/M in Players)	M.CheckByondVersion()
 
 world/New()
-	if(EnableRemoteHttpChecks)	spawn()	VerifyByondVersion()
+	spawn()	VerifyByondVersion()
 	return ..()
 
 mob/Login()

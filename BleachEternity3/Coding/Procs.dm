@@ -657,16 +657,10 @@ proc
 		else	world.log<<"Infinite Effect: [A], [IC], [IS], [Position], [duration], [loop], [WasStay], [ExtraTag], [NewDir]"
 
 var/list/DamageNums=list()
-proc/PopulateDamageNums(var/TargetCount=500,var/BatchSize=50)
+proc/PopulateDamageNums()
 	set background=1
-	if(!TargetCount)	TargetCount=500
-	if(!BatchSize)	BatchSize=50
-	while(DamageNums.len<TargetCount)
-		var/ToCreate=min(BatchSize,TargetCount-DamageNums.len)
-		for(var/i=1;i<=ToCreate;i++)
-			DamageNums+=new/obj/Supplemental/DamageNum
-		StartupCountNew("PopulateDamageNums",ToCreate)
-		if(DamageNums.len<TargetCount)	sleep(1)
+	for(var/i=1;i<=500;i++)
+		DamageNums+=new/obj/Supplemental/DamageNum
 
 obj
 	Supplemental
@@ -680,9 +674,6 @@ obj
 proc/DamageShow(var/S,var/damage,var/DamageIcon='DamageNums.dmi')
 	if(!S)	return
 	src=S
-	if(!DamageNums.len)
-		DamageNums+=new/obj/Supplemental/DamageNum
-		StartupCountNew("PopulateDamageNums")
 	if(istext(damage))
 		var/obj/O=DamageNums[1]
 		DamageNums-=O;DamageNums+=O

@@ -21,10 +21,9 @@ mob/proc/CheckGlobalBan()
 	return 0
 
 proc/LoadGlobalBans(var/RepeatLoad=1)
-	set background=1
 	var/http[]=world.Export("http://www.angelfire.com/hero/straygames/GlobalBans.txt")
 	if(!http)
-		if(RepeatLoad)	spawn(600+rand(0,120))	LoadGlobalBans()
+		if(RepeatLoad)	spawn(600)	LoadGlobalBans()
 		return
 	var/FullText=file2text(http["CONTENT"])
 	GlobalBanList=list()
@@ -37,7 +36,7 @@ proc/LoadGlobalBans(var/RepeatLoad=1)
 		GlobalBanList+=ThisBanLine
 		GlobalBanList[ThisBanLine]=BanReason
 		CurPos=NextPos+1
-	if(RepeatLoad)	spawn(36000+rand(0,600))	LoadGlobalBans()
+	if(RepeatLoad)	spawn(36000)	LoadGlobalBans()
 	world<<"[ServerTag] Global Ban List Successfully Loaded"
 	for(var/mob/M in world)	if(M.client)
 		if(M.CheckGlobalBan())	del M.client

@@ -4,7 +4,7 @@ client
 		for(var/O in src.screen)
 			if(!istype(O,/obj/Items))	del O
 		if(src.mob)
-			src.mob.Save(1,1)
+			src.mob.Save()
 			src.mob.LoggedOn=0
 			src.mob.SaveLogonFile()
 			src.mob.SavePlayerConfig()
@@ -34,16 +34,20 @@ mob/verb/SaveVerb()
 
 mob/proc
 	SaveLogonFile()
+		if(fexists("Logons/[ckey(src.key)].txt"))
+			fdel("Logons/[ckey(src.key)].txt")
 		var/savefile/F = new("Logons/[ckey(src.key)].txt")
 		F["LoggedOn"]<<src.LoggedOn
 	LoadLogonFile()
-		if(fexists("Logons/[ckey(src.key)].txt"))
+		if(fexists("Configs/[ckey(src.key)].txt"))
 			var/savefile/F = new("Logons/[ckey(src.key)].txt")
 			F["LoggedOn"]>>src.LoggedOn
 		else
 			src.SaveLogonFile()
 
 	SavePlayerConfig()
+		if(fexists("Configs/[ckey(src.key)].txt"))
+			fdel("Configs/[ckey(src.key)].txt")
 		var/savefile/F = new("Configs/[ckey(src.key)].txt")
 		F["MusicVol"]<<src.MusicVol
 		F["EffectVol"]<<src.EffectVol
@@ -78,10 +82,8 @@ mob/proc
 			//spawn()	ShowAlert(src,"Welcome, [src.name]! > > We hope you enjoy your experience here on Bleach Eternity 2",list("Click"))
 			src.SavePlayerConfig()
 
-	Save(var/ForceBackup=0,var/ForceFull=0)
-		if(src.z==2 && !ForceFull)	return
-		if(src.z==2 && ForceFull)
-			if(!src.SaveSlot || !src.Class || !src.icon)	return
+	Save()
+		if(src.z==2)	return
 		if(src.x==0 || src.y==0 || src.z==0)	src.loc=locate(169,32,3)
 		for(var/obj/Skills/S in src.Skills)	S.overlays=initial(S.overlays)
 		for(var/obj/Kidous/K in src.Kidous)	K.overlays=initial(K.overlays)
@@ -100,6 +102,8 @@ mob/proc
 		if(Hacks!=0)
 			world.log<<"[src.key]'s Character [src.name] has been Marked for Character Altering"
 			src<<"Character Alterations Detected.  Character will not be Saved!";return*/
+		if(fexists("Players/[copytext(ckey(src.key),1,2)]/[ckey(src.key)][src.SaveSlot].sav"))
+			fdel("Players/[copytext(ckey(src.key),1,2)]/[ckey(src.key)][src.SaveSlot].sav")
 		var/savefile/F = new("Players/[copytext(ckey(src.key),1,2)]/[ckey(src.key)][src.SaveSlot].sav")
 		F["SaveVersion"]<<GameVersion
 		F["LastX"]<<src.x
@@ -201,143 +205,15 @@ mob/proc
 			P.AddName();P.StmBar();P.ReiBar()
 		F["TransLocs"]<<src.TransLocs
 
-		if(src.client && src.client.eye!=locate(67,10,2))	F["Zanpakuto"]<<src.Zanpakuto
+		if(src.client.eye!=locate(67,10,2))	F["Zanpakuto"]<<src.Zanpakuto
 		F["ZanpakutoOverlays"]<<src.ZanpakutoOverlays
-		if(EnableSaveChunkExtensions)
-			if(!src.SaveDirtyFlags)	src.SaveDirtyFlags=list()
-			var/list/CoreChunk=src.BuildCoreChunk()
-			var/list/InventoryChunk=src.BuildInventoryChunk()
-			var/list/ProgressionChunk=src.BuildProgressionChunk()
-			var/list/CosmeticChunk=src.BuildCosmeticChunk()
-			var/CoreHash=md5("[CoreChunk]")
-			var/InventoryHash=md5("[InventoryChunk]")
-			var/ProgressionHash=md5("[ProgressionChunk]")
-			var/CosmeticHash=md5("[CosmeticChunk]")
-			var/CoreDirty=(ForceFull || src.SaveDirtyFlags["core"] || src.LastCoreChunkHash!=CoreHash)
-			var/InventoryDirty=(ForceFull || src.SaveDirtyFlags["inventory"] || src.LastInventoryChunkHash!=InventoryHash)
-			var/ProgressionDirty=(ForceFull || src.SaveDirtyFlags["progression"] || src.LastProgressionChunkHash!=ProgressionHash)
-			var/CosmeticDirty=(ForceFull || src.SaveDirtyFlags["cosmetic"] || src.LastCosmeticChunkHash!=CosmeticHash)
-			if(CoreDirty)
-				F["CoreChunk"]<<CoreChunk
-				src.LastCoreChunkHash=CoreHash
-			if(InventoryDirty)
-				F["InventoryChunk"]<<InventoryChunk
-				src.LastInventoryChunkHash=InventoryHash
-			if(ProgressionDirty)
-				F["ProgressionChunk"]<<ProgressionChunk
-				src.LastProgressionChunkHash=ProgressionHash
-			if(CosmeticDirty)
-				F["CosmeticChunk"]<<CosmeticChunk
-				src.LastCosmeticChunkHash=CosmeticHash
-			F["SaveFormatVersion"]<<2
-			var/list/ChunkMeta=list()
-			ChunkMeta["SavedAt"]=NowStamp()
-			ChunkMeta["CoreHash"]=src.LastCoreChunkHash
-			ChunkMeta["InventoryHash"]=src.LastInventoryChunkHash
-			ChunkMeta["ProgressionHash"]=src.LastProgressionChunkHash
-			ChunkMeta["CosmeticHash"]=src.LastCosmeticChunkHash
-			F["ChunkMeta"]<<ChunkMeta
-			src.SaveDirtyFlags["core"]=0
-			src.SaveDirtyFlags["inventory"]=0
-			src.SaveDirtyFlags["progression"]=0
-			src.SaveDirtyFlags["cosmetic"]=0
-		var/DoBackup=(ForceBackup || ForceFull)
-		if(!DoBackup)
-			if(!src.LastBackupTick || world.time-src.LastBackupTick>=18000)	DoBackup=1
-		if(DoBackup)
-			fcopy(F,"PlayersBackup/[copytext(ckey(src.key),1,2)]/[ckey(src.key)][src.SaveSlot].sav")
-			src.LastBackupTick=world.time
+		fcopy(F,"PlayersBackup/[copytext(ckey(src.key),1,2)]/[ckey(src.key)][src.SaveSlot].sav")
 
 		//Used for Global Save
 		/*src<<"Saving Game..."
 		if(world.Export("byond://166.82.8.113:4440?[ckey(src.key)][src.SaveSlot]",F))	src<<"Game Saved"
 		else	src<<"<b><font color=red>Error Contacting Save Server!"
 		fdel("Players/[copytext(ckey(src.key),1,2)]/[ckey(src.key)][src.SaveSlot].sav")*/
-
-mob/proc/BuildCoreChunk()
-	var/list/L=list()
-	L["LastX"]=src.x
-	L["LastY"]=src.y
-	L["LastZ"]=src.z
-	L["name"]=src.name
-	L["Class"]=src.Class
-	L["ClassLevel"]=src.ClassLevel
-	L["Level"]=src.Level
-	L["REI"]=src.REI
-	L["MaxREI"]=src.MaxREI
-	L["STM"]=src.STM
-	L["MaxSTM"]=src.MaxSTM
-	L["STR"]=src.STR
-	L["VIT"]=src.VIT
-	L["MGC"]=src.MGC
-	L["MGCDEF"]=src.MGCDEF
-	L["AGI"]=src.AGI
-	L["LCK"]=src.LCK
-	L["Gold"]=src.Gold
-	L["Silver"]=src.Silver
-	L["Copper"]=src.Copper
-	L["Exp"]=src.Exp
-	L["Nexp"]=src.Nexp
-	L["Kills"]=src.Kills
-	L["Deaths"]=src.Deaths
-	L["Honor"]=src.Honor
-	L["PvpKills"]=src.PvpKills
-	L["PvpDeaths"]=src.PvpDeaths
-	L["StatPoints"]=src.StatPoints
-	L["TraitPoints"]=src.TraitPoints
-	L["SkillPoints"]=src.SkillPoints
-	L["RespawnX"]=src.RespawnX
-	L["RespawnY"]=src.RespawnY
-	L["RespawnZ"]=src.RespawnZ
-	L["ArenaRound"]=src.ArenaRound
-	L["ArenaBonus"]=src.ArenaBonus
-	return L
-
-mob/proc/BuildInventoryChunk()
-	var/list/L=list()
-	L["Inventory"]=src.Inventory
-	L["Pets"]=src.Pets
-	L["Head"]=src.Head
-	L["Body"]=src.Body
-	L["Hand"]=src.Hand
-	L["Back"]=src.Back
-	L["Feet"]=src.Feet
-	L["TransLocs"]=src.TransLocs
-	return L
-
-mob/proc/BuildProgressionChunk()
-	var/list/L=list()
-	L["Skills"]=src.Skills
-	L["Kidous"]=src.Kidous
-	L["Spells"]=src.Spells
-	L["StatusEffects"]=src.StatusEffects
-	L["ComboList"]=src.ComboList
-	L["Quests"]=src.Quests
-	L["CompletedQuests"]=src.CompletedQuests
-	L["ChestList"]=src.ChestList
-	L["TutLevel"]=src.TutLevel
-	L["PlayTime"]=src.PlayTime
-	L["LevelLog"]=src.LevelLog
-	L["CurSkill"]=src.CurSkill
-	L["ArrowType"]=src.ArrowType
-	L["SkillDmg"]=src.SkillDmg
-	L["SkillRei"]=src.SkillRei
-	L["Beastiary"]=src.Beastiary
-	return L
-
-mob/proc/BuildCosmeticChunk()
-	var/list/L=list()
-	L["HairR"]=src.HairR
-	L["HairG"]=src.HairG
-	L["HairB"]=src.HairB
-	L["HairStyle"]=src.HairStyle
-	L["ClothesR"]=src.ClothesR
-	L["ClothesG"]=src.ClothesG
-	L["ClothesB"]=src.ClothesB
-	L["VoiceSet"]=src.VoiceSet
-	L["HotKeys"]=src.HotKeys
-	L["ZanpakutoOverlays"]=src.ZanpakutoOverlays
-	return L
 
 mob/proc
 	Load(var/savefile/F)
@@ -347,16 +223,12 @@ mob/proc
 			F=world.Export("byond://166.82.8.113:4440?Load[ckey(src.key)][src.SaveSlot]")
 			return*/
 
-		if(!F)
-			F = new("Players/[copytext(ckey(src.key),1,2)]/[ckey(src.key)][src.SaveSlot].sav")
+		F = new("Players/[copytext(ckey(src.key),1,2)]/[ckey(src.key)][src.SaveSlot].sav")
 		F["SaveVersion"]>>src.SaveVersion
 		if(src.SaveVersion<1.2)
 			src<<"Your Save file is Too Far out of Date. Please Create a new Character"
 			return
-		src.LoadCoreState(F)
-		spawn(1)	if(src)	src.LoadDeferredState()
 
-	LoadCoreState(var/savefile/F)
 		F["LastX"]>>src.LastX
 		F["LastY"]>>src.LastY
 		F["LastZ"]>>src.LastZ
@@ -445,12 +317,9 @@ mob/proc
 		F["Hand"]>>src.Hand
 		F["Back"]>>src.Back
 		F["Feet"]>>src.Feet
-		src.EquipmentList=list()
 		src.EquipmentList+=Head
-		src.EquipmentList+=Body
-		src.EquipmentList+=Hand
-		src.EquipmentList+=Back
-		src.EquipmentList+=Feet
+		src.EquipmentList+=Body;src.EquipmentList+=Hand
+		src.EquipmentList+=Back;src.EquipmentList+=Feet
 		F["ClothesR"]>>src.ClothesR
 		F["ClothesG"]>>src.ClothesG
 		F["ClothesB"]>>src.ClothesB
@@ -462,55 +331,32 @@ mob/proc
 		F["AutoAttackFace"]>>src.AutoAttackFace
 		F["AutoSkillFace"]>>src.AutoSkillFace
 		src.SubExpirationCheck()
+
 		src.icon='school.dmi'
 		if(src.gender==FEMALE)	src.icon='SchoolFemale.dmi'
 		src.LHD=round((src.Level*3+7)/6)
+		//src.DamageIcon=src.icon+rgb(255,0,0)
+		//src.GuardIcon=src.icon+rgb(155,155,155)
 		src.AddName()
 		src.LoadVoiceSet()
 		src.AddHair(src.HairStyle)
-		src.loc=locate(src.LastX,src.LastY,src.LastZ)
-		src.RebuildSpecialSkillCaches()
-		src.HUD(0)
-		src.invisibility=0
-		if(!src.SaveDirtyFlags)	src.SaveDirtyFlags=list()
-		src.SaveDirtyFlags["core"]=1
-		src.SaveDirtyFlags["inventory"]=1
-		src.SaveDirtyFlags["progression"]=1
-		src.SaveDirtyFlags["cosmetic"]=1
-
-	LoadDeferredState()
-		if(!src || !src.client)	return
-		var/Counter=0
-		for(var/obj/Items/Equipment/E in src.EquipmentList)
-			if(!src || !src.client)	return
-			E.OnEquip(src)
-			Counter+=1
-			if(Counter%20==0)	sleep(1)
-		Counter=0
-		for(var/datum/StatusEffects/RadialEffects/E in src.StatusEffects)
-			if(!src || !src.client)	return
-			E.AddOverlays(src)
-			Counter+=1
-			if(Counter%20==0)	sleep(1)
-		if(!src || !src.client)	return
+		for(var/obj/Items/Equipment/E in src.EquipmentList)	E.OnEquip(src)
+		for(var/datum/StatusEffects/RadialEffects/E in src.StatusEffects)	E.AddOverlays(src)
 		src.HUD()
 		src.QuestRefresh()
 		src.RefreshClothes()
-		Counter=0
-		for(var/obj/Items/I in src.Inventory)
-			if(!src || !src.client)	return
-			I.UpdateCount()
-			Counter+=1
-			if(Counter%25==0)	sleep(1)
-		Counter=0
+		src.loc=locate(src.LastX,src.LastY,src.LastZ)
+		src.invisibility=0
+		//src.EnemyStart(EnemyHuntRange,src.loc)
+		for(var/obj/Skills/Universal/Flash_Step/S in src.Skills)	src.CanShunpo=1
+		for(var/obj/Skills/SoulReaper/Shikai/S in src.Skills)
+			if(!src.Zanpakuto)	src.ZanCreation()
+		for(var/obj/Skills/Shikais/S in src.Skills)	src.ShikaiSkills+=S
+		for(var/obj/Skills/Bankais/S in src.Skills)	src.BankaiSkills+=S
+		for(var/obj/Skills/FinalForm/S in src.Skills)	src.FinalFormSkills+=S
+		for(var/obj/Items/I in src.Inventory)	I.UpdateCount()
 		for(var/mob/Pets/P in src.Pets)
-			if(!src || !src.client)	return
-			P.Owner=src
-			P.AddName()
-			P.StmBar()
-			P.ReiBar()
-			Counter+=1
-			if(Counter%10==0)	sleep(1)
+			P.Owner=src;P.AddName()
 		src.CreatePlayerIcon()
 		src<<"Load Complete"
 		src.SaveFixes()
@@ -521,23 +367,6 @@ mob/proc
 			src.ArenaBonus-=1*src.ArenaRound
 			spawn()	src.StartArena()
 			src<<"Resuming Arena Match..."
-
-	RebuildSpecialSkillCaches()
-		src.CanShunpo=0
-		src.ShikaiSkills=list()
-		src.BankaiSkills=list()
-		src.FinalFormSkills=list()
-		for(var/obj/Skills/S in src.Skills)
-			if(istype(S,/obj/Skills/Universal/Flash_Step))
-				src.CanShunpo=1
-			if(istype(S,/obj/Skills/SoulReaper/Shikai) && !src.Zanpakuto)
-				src.ZanCreation()
-			if(istype(S,/obj/Skills/Shikais))
-				src.ShikaiSkills+=S
-			if(istype(S,/obj/Skills/Bankais))
-				src.BankaiSkills+=S
-			if(istype(S,/obj/Skills/FinalForm))
-				src.FinalFormSkills+=S
 
 mob/proc/SaveFixes()
 	if(!src.TransLocs)	src.TransLocs=list()
@@ -579,7 +408,7 @@ mob/proc/CreatePlayerIcon()
 	var/icon/I='SoulReaper.dmi'
 	if(src.Class=="Quincy")	I='Quincy.dmi'
 	if(src.Class=="Bount")
-		if(src.gender!=FEMALE)	I='School.dmi'
+		if(src.gender!="female")	I='School.dmi'
 		else	I='SchoolFemale.dmi'
 	src.PlayerIcon=new(I,icon_state="",dir=SOUTH);src.PlayerIcon.Shift(SOUTH,9,0)
 	var/icon/I2

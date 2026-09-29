@@ -1,6 +1,4 @@
 var
-	StartupReady=0
-	StartupPhase="boot"
 	list/Players=list()
 	PlayerCount=0
 	PlayerLimit=99
@@ -16,14 +14,6 @@ var
 	list/HollowTypes=list()
 	GameVersion=11.3
 	StatusNote
-	EnableStartupProfilers=0
-	EnableStartupDiagnostics=0
-	EnableRemoteHttpChecks=0
-	EnableDeferredStartup=1
-	EnableDeferredWorldDecoration=1
-	EnableDeferredMapText=1
-	EnableDeferredRemoteChecks=1
-	EnableSaveChunkExtensions=1
 	RebootTime	//auto reboot setting
 	Rebooting
 	PlayerInfoTag="<b><font size=1><font color=blue>Player Info:</font> "
@@ -115,12 +105,6 @@ mob/var/tmp
 	AutoAttackFace=1
 	AutoSkillFace=1
 	Transforming=0
-	list/SaveDirtyFlags=list()
-	LastCoreChunkHash
-	LastInventoryChunkHash
-	LastProgressionChunkHash
-	LastCosmeticChunkHash
-	LastBackupTick=0
 
 mob/var
 	//Service Uses

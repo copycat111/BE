@@ -2,9 +2,6 @@ var/list/GMs=list()
 var/list/MuteList=list()
 var/list/BanList=list()
 
-proc/NowStamp()
-	return time2text(world.realtime,"YYYYMMDDhhmm")
-
 datum/PlayerInfo
 	var/name
 	var/Key
@@ -22,7 +19,7 @@ mob/proc/IsMuted()
 
 mob/proc/MuteExpire(var/datum/PlayerInfo/P)
 	if(P.Expires)
-		if(sorttext(P.Expires,NowStamp())<=0)
+		if(sorttext(time2text(world.realtime,"YYYYMMDDhhmm"),P.Expires)==-1)
 			world<<"<font size=1>The Mute on [src] has Expired"
 			MuteList-=P;del P
 			return 1

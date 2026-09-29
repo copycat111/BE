@@ -1,0 +1,76 @@
+
+** 21:11:40 Nov, 01 2016 Running Bleach Eternity 2 Version 11.3 **
+
+** 21:27:02 Nov, 01 2016 Running Bleach Eternity 2 Version 11.3 **
+
+** 21:27:53 Nov, 01 2016 Running Bleach Eternity 2 Version 11.3 **
+
+** 21:33:52 Nov, 01 2016 Running Bleach Eternity 2 Version 11.3 **
+
+** 18:08:38 Nov, 02 2016 Running Bleach Eternity 2 Version 11.3 **
+
+** 18:11:12 Nov, 02 2016 Running Bleach Eternity 2 Version 11.3 **
+
+** 18:13:45 Nov, 02 2016 Running Bleach Eternity 2 Version 11.3 **
+** 18:13:45 Nov, 02 2016 Server Shutdown Successfully **
+Average Players: 1 | CPU: 14%
+
+** 18:18:01 Nov, 02 2016 Running Bleach Eternity 2 Version 11.3 **
+** 18:18:52 Nov, 02 2016 Server Shutdown Successfully **
+Average Players: 1 | CPU: 4%
+
+** 21:36:51 Nov, 02 2016 Running Bleach Eternity 2 Version 11.3 **
+** 21:39:24 Nov, 02 2016 Server Shutdown Successfully **
+Average Players: 1 | CPU: 0%
+
+** 21:39:24 Nov, 02 2016 Running Bleach Eternity 2 Version 11.3 **
+** 21:40:16 Nov, 02 2016 Server Shutdown Successfully **
+Average Players: 1 | CPU: 6%
+
+** 23:35:28 Nov, 02 2016 Running Bleach Eternity 2 Version 11.3 **
+** 23:35:28 Nov, 02 2016 Server Shutdown Successfully **
+Average Players: 1 | CPU: 35%
+
+** 23:51:40 Nov, 02 2016 Running Bleach Eternity 2 Version 11.3 **
+** 23:51:40 Nov, 02 2016 Server Shutdown Successfully **
+Average Players: 0 | CPU: 4%
+
+** 01:46:01 Nov, 03 2016 Running Bleach Eternity 2 Version 11.3 **
+** 01:47:44 Nov, 03 2016 Server Shutdown Successfully **
+Average Players: 1 | CPU: 0%
+
+** 01:48:35 Nov, 03 2016 Running Bleach Eternity 2 Version 11.3 **
+** 01:48:35 Nov, 03 2016 Server Shutdown Successfully **
+Average Players: 0 | CPU: 6%
+
+** 01:49:26 Nov, 03 2016 Running Bleach Eternity 2 Version 11.3 **
+** 01:50:17 Nov, 03 2016 Server Shutdown Successfully **
+Average Players: 1 | CPU: 1%
+
+** 01:52:00 Nov, 03 2016 Running Bleach Eternity 2 Version 11.3 **
+** 01:57:07 Nov, 03 2016 Server Shutdown Successfully **
+Average Players: 0 | CPU: 0%
+
+** 01:58:49 Nov, 03 2016 Running Bleach Eternity 2 Version 11.3 **
+** 01:59:40 Nov, 03 2016 Server Shutdown Successfully **
+Average Players: 1 | CPU: 0%
+
+** 02:08:12 Nov, 03 2016 Running Bleach Eternity 2 Version 11.3 **
+** 02:09:04 Nov, 03 2016 Server Shutdown Successfully **
+Average Players: 1 | CPU: 10%
+
+** 02:09:04 Nov, 03 2016 Running Bleach Eternity 2 Version 11.3 **
+** 02:09:55 Nov, 03 2016 Server Shutdown Successfully **
+Average Players: 1 | CPU: 1%
+
+** 02:19:18 Nov, 03 2016 Running Bleach Eternity 2 Version 11.3 **
+** 02:20:09 Nov, 03 2016 Server Shutdown Successfully **
+Average Players: 1 | CPU: 1%
+
+** 02:21:00 Nov, 03 2016 Running Bleach Eternity 2 Version 11.3 **
+** 02:21:52 Nov, 03 2016 Server Shutdown Successfully **
+Average Players: 1 | CPU: 0%
+
+** 02:23:34 Nov, 03 2016 Running Bleach Eternity 2 Version 11.3 **
+** 02:25:16 Nov, 03 2016 Server Shutdown Successfully **
+Average Players: 1 | CPU: 0%

@@ -1,6 +1,6 @@
 #define DEBUG
 world
-	//hub="Falacy.BleachEternity"
+	hub="Falacy.BleachEternity"
 	name="Bleach Eternity 2"
 	status="Loading Server Configuration..."
 	map_format=TOPDOWN_MAP
@@ -9,8 +9,6 @@ world
 	fps = 35
 	Reboot()
 		Rebooting=1
-		for(var/mob/Player/M in world)	if(M && M.key)
-			M.Save(1,1)
 		SaveConfig()
 		world<<"<font color=red>Server is Rebooting..."
 		world<<"If you dont Automaticaly Reconnect:"
@@ -24,27 +22,78 @@ world
 	New()
 		world.log=file("LogFile[world.port].txt")
 		world.hub_password="Xx[739103]xX"
-		StartupReady=0
-		StartupPhase="boot"
-		StartupNewTotal=0
-		StartupNewByStep=list()
-		StartupStepDurations=list()
-		StartupCurrentStep=null
-		StartupDeferredStarted=0
 		spawn()	LogCPU()
 		world.log<<"\n** [time2text(world.realtime, "hh:mm:ss MMM, DD YYYY")] Running Bleach Eternity 2 Version [GameVersion] **"
-		if(EnableDeferredStartup)
-			spawn()	RunStartupCriticalQueue()
-		else
-			RunStartupCriticalQueue()
-			RunStartupDeferredQueue()
+		spawn()
+			HollowTypes+=typesof(/mob/Enemy/Hollows)-text2path("/mob/Enemy/Hollows")
+/*			for(var/obj/Skills/Bankais/S in world)	BankaiSkillNames+=S.name
+			for(var/obj/Skills/Shikais/S in world)	ShikaiSkillNames+=S.name
+			for(var/obj/Skills/S in world)
+				if(S.SkillType=="Active"||S.SkillType=="Attack"||S.SkillType=="Support")	AllSpecials+=new S.type
+			for(var/obj/Spells/S in world)	AllSpecials+=new S.type
+			for(var/obj/Kidous/S in world)	AllSpecials+=new S.type
+*/
+			var/LastVersion
+			if(fexists("config.sav"))
+				var/savefile/F = new("config.sav")
+				F["OverallScores"]>>OverallScores
+				F["PlayerLimit"]>>PlayerLimit
+				F["LastVersion"]>>LastVersion
+				F["CanMultiKey"]>>CanMultiKey
+				F["ArenaScores"]>>ArenaScores
+				F["StatusNote"]>>StatusNote
+				F["RebootTime"]>>RebootTime
+				F["MuteList"]>>MuteList
+				F["BanList"]>>BanList
+				F["MOTD"]>>MOTD
+				F["LoggedIPs"]>>LoggedIPs
+				F["LoggedIPCount"]>>LoggedIPCount
+				if(!LoggedIPCount)
+					LoggedIPCount=0;LoggedIPs=""
+				if(LastVersion<6.5)
+					world.log<<" ~ Mute List Reset ~ ";MuteList=list()
+
+		spawn()
+			BackgroundWorldSetup()
+			WorldStatusUpdate()
+			SpawnFlowers()
+			ArtSetup()
+			StatSetup()
+			TraitSetup()
+			PetAISetup()
+			KeyboardSetup()
+			PopulateDamageNums()
+
+		spawn()
+			WriteMapLine(80,20,50,16,2,"Desired Results")
+			WriteMapLine(80,-20,46,6,2,"Static PreRendered Images")
+			WriteMapLine(90,-6,50,16,2,"Actual Results")
+			WriteMapLine(89,-12,46,6,2,"Images Rendered In-Game")
+
 		spawn()	TimeLoop()
+		spawn()	LoadSubs()
 		spawn()	WorldLoop()
+		spawn()	LoadGlobalBans()
+		spawn()	LoadGlobalMutes()
+		spawn()	RequiredVersion()
+		spawn()	LoadOffensiveWords()
+		spawn()
+			if(world.host!="Copycat111")
+				var/http[]=world.Export("http://www.angelfire.com/hero/straygames/VersionBE.txt")
+				if(!http)
+					world<<"Version could not be Verified!"
+					world.log<<"Version could not be Verified!"
+					del world;return
+				var/F = file2text(http["CONTENT"])
+				if(text2num(copytext(F,1,8))>GameVersion)
+					world<<"<b>This version is out of date!"
+					world.log<<"BE Version is out of date"
+					del world;return
+		spawn()	ProfileDatums()
+		spawn()	ProfileAtoms()
 		return ..()
 	Del()
 		if(!Rebooting)
-			for(var/mob/Player/M in world)	if(M && M.key)
-				M.Save(1,1)
 			SaveConfig()
 			world<<"<font color=red>Server Shutting Down..."
 			world.log<<"** [time2text(world.realtime, "hh:mm:ss MMM, DD YYYY")] Server Shutdown Successfully **"
@@ -69,168 +118,21 @@ proc/SaveConfig(/**/)
 	F["LoggedIPs"]<<LoggedIPs
 	F["LoggedIPCount"]<<LoggedIPCount
 
-proc/LoadConfig(/**/)
-	if(fexists("config.sav"))
-		var/savefile/F = new("config.sav")
-		F["OverallScores"]>>OverallScores
-		F["PlayerLimit"]>>PlayerLimit
-		F["CanMultiKey"]>>CanMultiKey
-		F["ArenaScores"]>>ArenaScores
-		F["StatusNote"]>>StatusNote
-		F["RebootTime"]>>RebootTime
-		F["MuteList"]>>MuteList
-		F["BanList"]>>BanList
-		F["MOTD"]>>MOTD
-		F["LoggedIPs"]>>LoggedIPs
-		F["LoggedIPCount"]>>LoggedIPCount
-	else
-		SaveConfig()
-	if(!OverallScores)	OverallScores=list()
-	if(!ArenaScores)	ArenaScores=list()
-	if(!MuteList)	MuteList=list()
-	if(!BanList)	BanList=list()
-	if(!MOTD)	MOTD=initial(MOTD)
-	if(PlayerLimit==null)	PlayerLimit=initial(PlayerLimit)
-	if(CanMultiKey!="Allow" && CanMultiKey!="Disable")
-		CanMultiKey=initial(CanMultiKey)
-
-proc/StartupCountNew(var/StepName,var/Amount=1)
-	if(!isnum(Amount) || Amount<=0)	return
-	if(StartupPhase=="live")	return
-	if(!StepName)	StepName=StartupCurrentStep
-	if(!StepName)	StepName="Unattributed"
-	if(!StartupNewByStep)	StartupNewByStep=list()
-	if(!isnum(StartupNewByStep[StepName]))	StartupNewByStep[StepName]=0
-	StartupNewByStep[StepName]+=Amount
-	StartupNewTotal+=Amount
-
-proc/StartupStepBegin(var/StepName)
-	StartupCurrentStep=StepName
-	return world.time
-
-proc/StartupStepEnd(var/StepName,var/StartTick)
-	var/Elapsed=max(0,world.time-StartTick)
-	if(!StartupStepDurations)	StartupStepDurations=list()
-	StartupStepDurations[StepName]=Elapsed
-	var/NewCount=StartupNewByStep[StepName]
-	if(!isnum(NewCount))	NewCount=0
-	world.log<<"** [time2text(world.realtime, "hh:mm:ss MMM, DD YYYY")] Startup Step [StepName]: [round(Elapsed/10,0.1)]s | New [NewCount] **"
-	if(Elapsed>=300)
-		world.log<<"!! Startup Step [StepName] exceeded 30 seconds"
-	if(StartupCurrentStep==StepName)	StartupCurrentStep=null
-
-proc/StartupScheduleRemoteChecks()
-	if(!EnableRemoteHttpChecks)	return
-	spawn(rand(5,20))	LoadSubs()
-	spawn(rand(10,25))	LoadGlobalBans()
-	spawn(rand(10,25))	LoadGlobalMutes()
-	spawn(rand(15,30))	LoadOffensiveWords()
-	spawn(rand(20,35))	RequiredVersion()
-	spawn(rand(20,35))	CheckCurrentVersion()
-
-proc/RunStartupCriticalQueue()
-	set background=1
-	if(StartupReady)	return
-	StartupPhase="critical"
-	world.log<<"** [time2text(world.realtime, "hh:mm:ss MMM, DD YYYY")] Startup critical queue started **"
-	var/StepTick=StartupStepBegin("LoadConfig")
-	LoadConfig()
-	StartupStepEnd("LoadConfig",StepTick)
-
-	StepTick=StartupStepBegin("BuildSpecialCaches")
-	AllSpecials=typesof(/obj/Skills)-/obj/Skills
-	AllSpecials+=typesof(/obj/Kidous)-/obj/Kidous
-	AllSpecials+=typesof(/obj/Spells)-/obj/Spells
-	ShikaiSkillNames=list()
-	BankaiSkillNames=list()
-	for(var/obj/Skills/Shikais/S in (typesof(/obj/Skills/Shikais)-/obj/Skills/Shikais))
-		ShikaiSkillNames+=initial(S.name)
-	for(var/obj/Skills/Bankais/B in (typesof(/obj/Skills/Bankais)-/obj/Skills/Bankais))
-		BankaiSkillNames+=initial(B.name)
-	StartupStepEnd("BuildSpecialCaches",StepTick)
-
-	StepTick=StartupStepBegin("WorldStatus")
-	WorldStatusUpdate()
-	StartupStepEnd("WorldStatus",StepTick)
-
-	StartupReady=1
-	StartupPhase="ready"
-	world.log<<"** [time2text(world.realtime, "hh:mm:ss MMM, DD YYYY")] Startup critical queue complete **"
-	if(EnableDeferredStartup)
-		spawn()	RunStartupDeferredQueue()
-
-proc/RunStartupDeferredQueue()
-	set background=1
-	if(StartupDeferredStarted)	return
-	StartupDeferredStarted=1
-	while(!StartupReady)	sleep(2)
-	StartupPhase="deferred"
-	world.log<<"** [time2text(world.realtime, "hh:mm:ss MMM, DD YYYY")] Startup deferred queue started **"
-	var/StepTick
-	StepTick=StartupStepBegin("BackgroundWorldSetup")
-	BackgroundWorldSetup()
-	StartupStepEnd("BackgroundWorldSetup",StepTick)
-
-	if(EnableDeferredWorldDecoration)
-		StepTick=StartupStepBegin("SpawnFlowers")
-		SpawnFlowers()
-		StartupStepEnd("SpawnFlowers",StepTick)
-
-	if(EnableDeferredMapText)
-		StepTick=StartupStepBegin("ArtSetup")
-		ArtSetup()
-		StartupStepEnd("ArtSetup",StepTick)
-		StepTick=StartupStepBegin("StatSetup")
-		StatSetup()
-		StartupStepEnd("StatSetup",StepTick)
-		StepTick=StartupStepBegin("TraitSetup")
-		TraitSetup()
-		StartupStepEnd("TraitSetup",StepTick)
-		StepTick=StartupStepBegin("PetAISetup")
-		PetAISetup()
-		StartupStepEnd("PetAISetup",StepTick)
-		StepTick=StartupStepBegin("KeyboardSetup")
-		KeyboardSetup()
-		StartupStepEnd("KeyboardSetup",StepTick)
-
-	StepTick=StartupStepBegin("PopulateDamageNums")
-	PopulateDamageNums(500,50)
-	StartupStepEnd("PopulateDamageNums",StepTick)
-
-	if(EnableDeferredRemoteChecks)
-		StepTick=StartupStepBegin("RemoteChecks")
-		StartupScheduleRemoteChecks()
-		StartupStepEnd("RemoteChecks",StepTick)
-
-	StartupPhase="live"
-	world.log<<"** [time2text(world.realtime, "hh:mm:ss MMM, DD YYYY")] Startup deferred queue complete | Total New [StartupNewTotal] **"
-
 proc/BackgroundWorldSetup()
 	set background=1
-	var/list/NewGambits=list()
-	for(var/x in (typesof(/datum/Gambits)-/datum/Gambits))
-		NewGambits+=new x
-		StartupCountNew("BackgroundWorldSetup")
-		if(NewGambits.len%50==0)	sleep(1)
-	AllGambits=NewGambits
-	var/list/NewStatusEffects=list()
-	AllStatusEffectsNames=list()
-	for(var/x in (typesof(/datum/StatusEffects)-/datum/StatusEffects))
-		var/datum/StatusEffects/D=new x
-		NewStatusEffects+=D
-		AllStatusEffectsNames+=D.name
-		StartupCountNew("BackgroundWorldSetup")
-		if(NewStatusEffects.len%50==0)	sleep(1)
-	AllStatusEffects=NewStatusEffects
+	AllGambits=typesof(/datum/Gambits)
+	for(var/x in AllGambits)
+		AllGambits-=x;AllGambits+=new x
+	AllStatusEffects=typesof(/datum/StatusEffects)
+	for(var/x in AllStatusEffects)
+		AllStatusEffects-=x;var/datum/StatusEffects/D=new x
+		AllStatusEffects+=D;AllStatusEffectsNames+=D.name
 	BeastBladeDamageIcon='BeastBankai.dmi';BeastBladeDamageIcon+=rgb(255,0,0)
 	var/icon/Turfs='turfs.dmi';Turfs-=rgb(0,0,0,175)
 	var/icon/SSTurfs='SSTurfs.dmi';SSTurfs-=rgb(0,0,0,175)
 	var/icon/Karakura='Karakura.dmi';Karakura-=rgb(0,0,0,175)
 	var/icon/Jungle='Jungle.dmi';Jungle-=rgb(0,0,0,175)
-	var/TurfCounter=0
 	for(var/turf/T in world)
-		TurfCounter+=1
-		if(TurfCounter%150==0)	sleep(1)
 		if(T.layer>MOB_LAYER && T.Phase==1)
 			var/PreLayer=T.layer;T.layer=TURF_LAYER
 			T.underlays+=T;T.layer=PreLayer
@@ -244,31 +146,18 @@ obj/Supplemental/Flower
 	icon='Flowers.dmi';layer=TURF_LAYER;mouse_opacity=0
 proc/SpawnFlowers()
 	set background=1
-	var/GrassCounter=0
 	for(var/turf/Soul_Society/Grass/G in world)
-		GrassCounter+=1
-		if(GrassCounter%150==0)	sleep(1)
 		if(rand(1,5)==1 && G.icon_state=="Grass")
-			var/HasFlower=0
-			for(var/obj/Supplemental/Flower/F in G)
-				HasFlower=1
-				break
-			if(HasFlower)	continue
 			var/counter=0
-			while(rand(1,3)!=3 && counter<2)
+			for(var/O in G)	continue
+			while(rand(1,3)!=3 && counter<=2)
 				counter+=1
 				var/obj/Supplemental/Flower/NF=new(G)
-				StartupCountNew("SpawnFlowers")
 				NF.pixel_x=rand(-12,12)
 				NF.pixel_y=rand(-12,12)
 				NF.icon_state="flower[rand(1,8)]"
 
 var
-	list/StartupNewByStep=list()
-	list/StartupStepDurations=list()
-	StartupNewTotal=0
-	StartupCurrentStep
-	StartupDeferredStarted=0
 	hours=0
 	minutes=0
 	seconds=0
@@ -309,15 +198,6 @@ client
 mob
 	Login(/**/)
 		src.LogClient()
-		if(src.CheckGlobalBan())
-			del src;return
-		for(var/datum/PlayerInfo/P in BanList)
-			if(P.IP==src.client.address)
-				src<<"This IP Address is Banned.<br>Reason: [P.Reason]"
-				del src;return
-			if(P.Key==src.key)
-				src<<"This Key is Banned.<br>Reason: [P.Reason]"
-				del src;return
 		/*if(copytext(src.key,1,min(7,length(src.key)))=="Guest-" || src.key=="Guest")
 			src<<"Guest Keys are Disabled"
 			del src;return
@@ -356,11 +236,6 @@ mob
 		if(!findtext(LoggedIPs,"<tr><td><b>[src.key]<td>[src.client.address]",1,0))
 			LoggedIPs+="<tr><td><b>[src.key]<td>[src.client.address]"
 			LoggedIPCount+=1*/
-		if(!StartupReady)
-			src<<"[ServerInfoTag] Server is warming up. Please wait a moment..."
-			while(src && src.client && !StartupReady)
-				sleep(10)
-			if(!src || !src.client)	return
 		src.LoadPlayerConfig()
 		//src.SubCheck()
 		src.LoggedOn=1
@@ -417,8 +292,6 @@ mob
 		del src
 
 proc/RequiredVersion()
-	set background=1
-	if(!EnableRemoteHttpChecks)	return
 	var/http[]=world.Export("http://www.angelfire.com/hero/straygames/RequiredBE.txt")
 	if(http)
 		var/F = file2text(http["CONTENT"])
@@ -427,28 +300,11 @@ proc/RequiredVersion()
 			world.log<<"BE Version is out of date"
 			//for(var/mob/Player/M in world)	if(M.key)	M.Save()
 			del world
-	spawn(36000+rand(0,600))	RequiredVersion()
-
-proc/CheckCurrentVersion()
-	set background=1
-	if(!EnableRemoteHttpChecks || world.host=="Copycat111")	return
-	var/http[]=world.Export("http://www.angelfire.com/hero/straygames/VersionBE.txt")
-	if(!http)
-		world<<"Version could not be Verified!"
-		world.log<<"Version could not be Verified!"
-		spawn(1800+rand(0,600))	CheckCurrentVersion()
-		return
-	var/F = file2text(http["CONTENT"])
-	if(text2num(copytext(F,1,8))>GameVersion)
-		world<<"<b>This version is out of date!"
-		world.log<<"BE Version is out of date"
-		del world
-		return
-	spawn(36000+rand(0,600))	CheckCurrentVersion()
+	spawn(36000)	RequiredVersion()
 
 proc/CheckMuteExpirations()
 	for(var/datum/PlayerInfo/P in MuteList)	if(P.Expires)
-		if(sorttext(P.Expires,NowStamp())<=0)
+		if(sorttext(time2text(world.realtime,"YYYYMMDDhhmm"),P.Expires)==-1)
 			MuteList-=P;del P
 
 proc/WorldLoop()

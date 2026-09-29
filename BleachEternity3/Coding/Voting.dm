@@ -70,8 +70,6 @@ obj/Votes
 			if(M.key=="Falacy")	return
 			var/NewReason=input("Select the Message to Mute for:","Vote Mute Reason") as null|anything in M.LastSays
 			if(!M || !usr || !NewReason)	return
-			if(!M.client)
-				QuestShow(usr,"That Player is no longer online.");return
 			if((usr.key in GlobalVoters)||(usr.client.address in GlobalVoters))
 				QuestShow(usr,"Limit One Vote Start per Hour!");return
 			if(usr.IsMuted())//Checks to see if starter is already muted
@@ -92,9 +90,6 @@ obj/Votes
 			world<<"[VoteInfoTag]Reason:</b> [NewReason]"
 			var/NewPath=text2path("/obj/Votes/[src.name]")
 			var/obj/Votes/V=new NewPath;V.VoteStarter=usr.name;V.Reason=NewReason
-			if(!M.client)
-				del V
-				QuestShow(usr,"That Player is no longer online.");return
 			V.VoteName=M.name;V.VoteStarterKey=usr.key;V.VoteStarterIP=usr.client.address
 			V.name="[src.name] [M]";V.VoteKey=M.key;V.VoteIP=M.client.address;Votes+=V
 		else

@@ -9,14 +9,13 @@ mob/verb/SubscribeMenu()
 		if("Subscribe Now")	usr<<link("http://www.angelfire.com/hero/straygames/Subscribe.html")
 
 proc/LoadSubs(var/Loop=1)
-	set background=1
 	var/http[]=world.Export("http://www.angelfire.com/hero/straygames/Subscribers.txt")
 	if(!http)	//Site could not be contacted
-		if(Loop)	spawn(600+rand(0,120))	LoadSubs()
+		if(Loop)	spawn(600)	LoadSubs()
 		return
 	var/F=file2text(http["CONTENT"])
 	if(copytext(F,1,2)!="B")	//Invalid site reached?
-		if(Loop)	spawn(600+rand(0,120))	LoadSubs()
+		if(Loop)	spawn(600)	LoadSubs()
 		return
 	SubList=list()
 	var/counter=1
@@ -27,7 +26,7 @@ proc/LoadSubs(var/Loop=1)
 		counter=findtext(F,CRGRTN,counter,0)+1
 	world<<"[ServerInfoTag]Subscriber List Successfully Loaded"
 	ActivateNewSubs()
-	if(Loop)	spawn(36000+rand(0,600))	LoadSubs()
+	if(Loop)	spawn(36000)	LoadSubs()
 
 proc/ActivateNewSubs()
 	for(var/mob/M in Players)

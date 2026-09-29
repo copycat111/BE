@@ -35,7 +35,7 @@ mob/proc/SaveFileHUD()
 			if(M.Class=="Soul Reaper")	M.icon='SoulReaper.dmi'
 			if(M.Class=="Quincy")	M.icon='Quincy.dmi'
 			if(M.Class=="Bount")
-				if(usr.gender!=FEMALE)	M.icon='School.dmi'
+				if(usr.gender!="female")	M.icon='School.dmi'
 				else	M.icon='SchoolFemale.dmi'
 		else	src.WriteLine(8,16,ySpot,-4,"LoadScreen","Empty Save Slot",0)
 	usr.Loading=0
@@ -158,7 +158,7 @@ turf
 							if(usr.Class=="Soul Reaper")	CP.icon='SoulReaper.dmi'
 							if(usr.Class=="Quincy")	CP.icon='Quincy.dmi'
 							if(usr.Class=="Bount")
-								if(usr.gender!=FEMALE)	CP.icon='School.dmi'
+								if(usr.gender!="Female")	CP.icon='School.dmi'
 								else	CP.icon='SchoolFemale.dmi'
 							var/obj/HP=new/obj/HUD/HairPreview
 							usr.client.screen+=HP

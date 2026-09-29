@@ -103,7 +103,7 @@ obj
 				PlayMenuSound(usr,'OOT_MainMenu_Select.wav')
 				for(var/obj/HUD/CharOptions/O in usr.client.screen)	del O
 				usr.LastClicked=src.MyMob
-				var/DispOff=0
+				var.DispOff=0
 				var/listy[]=params2list(control)
 				usr.client.screen+=new/obj/HUD/CharOptions/Check(MyX,text2num(listy["icon-x"]),MyY-1,text2num(listy["icon-y"]))
 				if(usr!=src.MyMob && usr.Party && usr.Party.Members[1]==usr && (src.MyMob in usr.Party.Members))
@@ -626,7 +626,7 @@ mob/proc/ClearHUD(/**/)
 	for(var/datum/LowCpuHudDatum/D in src.LowCpuHuds)	D.Delete()
 	src.client.screen=initial(src.client.screen)
 
-mob/proc/HUD(var/Stage2=1)
+mob/proc/HUD(/**/)
 	src.ClearHUD()
 	src.client.screen+=new/obj/HUD/ExpOrb
 	src.client.screen+=new/obj/HUD/LevelOrb
@@ -688,10 +688,6 @@ mob/proc/HUD(var/Stage2=1)
 		src.CreateHUDText(12,-2,18,8,"ArrowDist")
 		for(var/obj/HUD/Quincy/ArrowType/S in src.client.screen)
 			S.icon_state=src.ArrowType
-	if(!Stage2)
-		src.HUDRefresh()
-		src.ArrowHUD()
-		return
 	src.UpdateStatusEffects()
 	src.UpdatePartyHUD()
 	src.TrackQuests()

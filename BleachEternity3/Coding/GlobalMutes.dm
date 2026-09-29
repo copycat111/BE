@@ -21,10 +21,9 @@ mob/proc/CheckGlobalMute()
 	return 0
 
 proc/LoadGlobalMutes(var/RepeatLoad=1)
-	set background=1
 	var/http[]=world.Export("http://www.angelfire.com/hero/straygames/GlobalMutes.txt")
 	if(!http)
-		if(RepeatLoad)	spawn(600+rand(0,120))	LoadGlobalMutes()
+		if(RepeatLoad)	spawn(600)	LoadGlobalMutes()
 		return
 	var/FullText=file2text(http["CONTENT"])
 	GlobalMuteList=list()
@@ -37,5 +36,5 @@ proc/LoadGlobalMutes(var/RepeatLoad=1)
 		GlobalMuteList+=ThisMuteLine
 		GlobalMuteList[ThisMuteLine]=MuteReason
 		CurPos=NextPos+1
-	if(RepeatLoad)	spawn(36000+rand(0,600))	LoadGlobalMutes()
+	if(RepeatLoad)	spawn(36000)	LoadGlobalMutes()
 	world<<"[ServerTag] Global Mute List Successfully Loaded"

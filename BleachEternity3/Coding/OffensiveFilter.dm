@@ -1,20 +1,19 @@
 var/OffensiveLog="<center><table border=1>"
 var/list/OffensiveWords=list()
 proc/LoadOffensiveWords(var/Loop=1)
-	set background=1
 	var/http[]=world.Export("http://www.angelfire.com/hero/straygames/OffensiveWords.txt")
 	if(!http)	//Site could not be contacted
-		if(Loop)	spawn(600+rand(0,120))	LoadOffensiveWords()
+		if(Loop)	spawn(600)	LoadOffensiveWords()
 		return
 	var/F=file2text(http["CONTENT"])
 	if(copytext(F,1,2)!="B")	//Invalid site reached?
-		if(Loop)	spawn(600+rand(0,120))	LoadOffensiveWords()
+		if(Loop)	spawn(600)	LoadOffensiveWords()
 		return
 	OffensiveWords=params2list(file2text(http["CONTENT"]))
 	OffensiveWords=SortTextByLen(OffensiveWords)
 	world<<"[ServerTag] Offensive Word List Successfully Loaded"
 	for(var/mob/M in Players)	M.LastSays=list()
-	if(Loop)	spawn(36000+rand(0,600))	LoadOffensiveWords()
+	if(Loop)	spawn(36000)	LoadOffensiveWords()
 
 proc/SortTextByLen(var/list/L)
 	var/list/SortedL=list()
@@ -140,4 +139,3 @@ mob/proc/SpamGuard(var/t)
 	src.LastSays+=t
 	if(src.LastSays.len>10)	src.LastSays=src.LastSays.Copy(2,0)
 	return html_encode(copytext(CS.Expand(),CS.PreLen))
-

@@ -65,7 +65,7 @@ mob/Topic(href,href_list[])
 							usr<<output("<b>[keyo] is Ignoring You!","[keyo].MessageOutput");return
 						if(!M.AllowPMs)
 							usr<<output("<b>This Player is Currently Ignoring All PMs","[keyo].MessageOutput");return
-						var/t=usr.SpamGuard(href_list["Message"])
+						var/t=href_list["Message"]
 						//open window for other person
 						if(!t)	return
 						usr<<output("<b><font color=yellow>[usr.name]:</font color></B> [t]","[keyo].MessageOutput")

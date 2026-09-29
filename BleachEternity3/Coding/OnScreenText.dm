@@ -17,20 +17,15 @@ obj/HUD/OnScreenText
 		icon='ChatBG.dmi'
 		layer=4
 		New(var/xp,var/yp,var/IS)
-			if(isnum(xp) && isnum(yp))
-				src.icon_state="[IS]"
-				src.screen_loc="[xp+1],[yp+1]"
-				return
-			return
+			src.icon_state="[IS]"
+			src.screen_loc="[xp+1],[yp+1]"
 	ChatBG
 		icon='ChatBG.png'
 		layer=20
 		New(var/xp,var/yp)
-			if(isnum(xp) && isnum(yp))
-				src.icon_state="[xp-5],[yp-6]"
-				src.screen_loc="[xp+1],[yp+1]"
-				return
-			return
+			if(!xp||!yp)	return
+			src.icon_state="[xp-5],[yp-6]"
+			src.screen_loc="[xp+1],[yp+1]"
 	ChatBG2
 		//icon='ChatBG2.dmi'
 		ChatBGTL
@@ -251,16 +246,12 @@ obj/HUD/OnScreenText
 proc/WriteMapLine(var/hudx,var/hudxpix,var/hudy,var/hudypix,var/hudz,var/word)
 	var/PixelSpace=7
 	var/CurPos=0
-	var/Created=0
 	while(1)
 		CurPos+=1
 		var/letter=copytext(word,CurPos,CurPos+1)
 		if(letter==" ")	{hudxpix+=PixelSpace;continue}
 		if(!letter)	return
 		var/obj/HUD/OnScreenText/CharacterM/CM=new(hudx,hudxpix,hudy,hudypix,hudz,letter)
-		StartupCountNew()
-		Created+=1
-		if(Created%40==0)	sleep(1)
 		CM.layer=OBJ_LAYER
 		if(SlimLetter(letter))	hudxpix-=4
 		hudxpix+=PixelSpace
